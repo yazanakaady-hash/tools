@@ -1,0 +1,6 @@
+# RE-Nexus dependencies — Python 3.9+
+# singleshot.py is dependency-free; these cover Flask/WSGI + engines only.
+flask>=3.0
+werkzeug>=3.0
+psutil>=5.9
+cryptography>=42.0

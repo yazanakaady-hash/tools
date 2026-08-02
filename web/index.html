@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>YAZAN · Elite System</title>
+  <link rel="stylesheet" href="css/app.css" />
+  <link rel="stylesheet" href="css/profile.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <meta name="theme-color" content="#0B0B0E" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --neon: #D4AF37;
+      --neon-glow: rgba(212,175,55,.35);
+      --hex-size: 64px;
+    }
+    /* Avatar & branding */
+    .brand-wrap { display:flex; align-items:center; gap:14px; }
+    .hex-avatar {
+      width:64px; height:64px; position:relative; flex-shrink:0;
+    }
+    .hex-avatar svg { width:100%; height:100%; }
+    .hex-avatar .hex-inner {
+      fill: none; stroke: var(--neon); stroke-width: 2;
+      filter: drop-shadow(0 0 10px var(--neon-glow)) drop-shadow(0 0 25px var(--neon-glow));
+    }
+    .hex-avatar .hex-letter {
+      fill: var(--neon); font-family: var(--mono); font-size: 28px; font-weight: 800;
+      text-anchor: middle; dominant-baseline: central;
+      filter: drop-shadow(0 0 8px var(--neon-glow));
+    }
+    .brand-name strong { display:block; font-size:17px; letter-spacing:.06em; color:#fff; }
+    .brand-name span { color:var(--muted); font-size:11px; }
+
+    /* Quick Action Ribbon */
+    .quick-ribbon {
+      position:fixed; bottom:0; left:0; right:0; z-index:60;
+      background: rgba(10,13,18,.92); backdrop-filter: blur(18px);
+      border-top: 1px solid var(--border);
+      padding: 8px 18px;
+      display:flex; gap:10px; align-items:center; flex-wrap:wrap;
+      justify-content:center;
+    }
+    .quick-ribbon .drop-zone {
+      border: 2px dashed rgba(0,240,255,.18); border-radius: 10px;
+      padding: 6px 16px; cursor: pointer; transition:.15s;
+      color:var(--muted); font-size:12px; min-width:120px; text-align:center;
+    }
+    .quick-ribbon .drop-zone.drag-over { border-color:var(--accent); background:rgba(0,240,255,.06); color:var(--accent); }
+    .quick-ribbon .rib-btn {
+      all:unset; cursor:pointer; padding:7px 13px; border-radius:8px;
+      font-size:12px; font-weight:600; letter-spacing:.03em;
+      background:rgba(0,240,255,.08); color:var(--accent);
+      border:1px solid rgba(0,240,255,.18); transition:.12s;
+      white-space:nowrap;
+    }
+    .quick-ribbon .rib-btn:hover { background:rgba(0,240,255,.16); box-shadow:0 0 14px var(--neon-glow); }
+    .quick-ribbon .rib-btn.wipe { background:rgba(255,26,102,.1); color:var(--blood); border-color:rgba(255,26,102,.25); }
+    .quick-ribbon .rib-btn.wipe:hover { background:rgba(255,26,102,.2); box-shadow:0 0 18px var(--blood-glow); }
+    .quick-ribbon .rib-btn.psychic-btn { background:rgba(168,85,247,.1); color:var(--psychic); border-color:rgba(168,85,247,.25); }
+    .quick-ribbon .rib-btn.psychic-btn:hover { background:rgba(168,85,247,.2); box-shadow:0 0 18px var(--psychic-glow); }
+
+    /* Progress bar */
+    .quick-ribbon .progress-wrap { flex:1; max-width:300px; min-width:120px; }
+    .quick-ribbon .progress-bar {
+      height:6px; border-radius:3px; background:var(--panel2);
+      overflow:hidden; position:relative;
+    }
+    .quick-ribbon .progress-fill {
+      height:100%; width:0%; border-radius:3px;
+      background: linear-gradient(90deg, var(--accent), var(--psychic));
+      transition: width .3s ease;
+    }
+    .quick-ribbon .progress-label {
+      font-size:10px; color:var(--muted); margin-top:3px; font-family:var(--mono);
+    }
+    .quick-ribbon .entropy-gauge {
+      font-family:var(--mono); font-size:11px; color:var(--accent);
+      min-width:60px; text-align:center;
+    }
+
+    /* Elite module cards */
+    .elite-grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(300px,1fr)); gap:12px; }
+    .elite-card {
+      background:linear-gradient(180deg, rgba(20,24,32,.92), rgba(15,17,23,.9));
+      border:1px solid var(--border); border-radius:14px; padding:16px;
+      transition:.15s;
+    }
+    .elite-card:hover { border-color:var(--accent); transform:translateY(-2px); box-shadow:0 8px 28px var(--accent-glow); }
+    .elite-card h3 { margin:0 0 4px; font-size:14px; }
+    .elite-card .elite-desc { color:var(--muted); font-size:11px; line-height:1.5; margin:0 0 10px; }
+    .elite-card .elite-actions { display:flex; gap:6px; flex-wrap:wrap; }
+    .elite-card .mini-btn {
+      all:unset; cursor:pointer; padding:5px 10px; border-radius:6px;
+      font-size:10.5px; font-weight:600;
+      background:rgba(0,240,255,.06); border:1px solid rgba(0,240,255,.15);
+      color:var(--accent); transition:.12s;
+    }
+    .elite-card .mini-btn:hover { background:rgba(0,240,255,.14); }
+    .elite-card .mini-btn.red { color:var(--blood); border-color:rgba(255,26,102,.2); background:rgba(255,26,102,.04); }
+    .elite-card .mini-btn.red:hover { background:rgba(255,26,102,.12); }
+    .elite-card .mini-btn.purple { color:var(--psychic); border-color:rgba(168,85,247,.2); background:rgba(168,85,247,.04); }
+    .elite-card .result-area {
+      margin-top:10px; background:rgba(0,12,24,.85); border-radius:8px;
+      padding:12px 14px; font-size:13.5px; font-family:var(--mono);
+      max-height:280px; overflow:auto; direction:ltr; text-align:left; display:none;
+      color:#f0f6ff; line-height:1.7; border:1px solid rgba(0,240,255,.15);
+    }
+    .elite-card .result-area.show { display:block; }
+
+    /* ── High visibility overrides ── */
+    .mono, pre.mono, #ghostPlan, #sovPlan, #kamiPlaybook, #brainCode,
+    #revPlan, #antCover, #shatterCFG, #bhPlaybook, #specPlan, #flipStrat,
+    #futPreds, #regKey, #plaguePlan, #shellCores, #shellChains, #netProto,
+    #netFp, #netFlows, #netDns {
+      font-size: 14px !important;
+      line-height: 1.8 !important;
+      color: #f2f7ff !important;
+      background: rgba(4, 14, 28, 0.9) !important;
+      padding: 14px !important;
+      border-radius: 10px !important;
+      border: 1px solid rgba(0, 240, 255, 0.2) !important;
+    }
+    table.tbl { font-size: 13.5px !important; }
+    table.tbl th {
+      color: #5af0ff !important;
+      font-size: 12.5px !important;
+      background: #0a1220 !important;
+      padding: 10px 12px !important;
+    }
+    table.tbl td {
+      color: #f0f6ff !important;
+      padding: 10px 12px !important;
+      border-bottom: 1px solid rgba(0,240,255,.15) !important;
+    }
+    .score, #ghostScore, #sovScore, #futScore, #regAcc {
+      font-size: 34px !important;
+      font-weight: 800 !important;
+      color: #ff4d7a !important;
+      -webkit-text-fill-color: #ff4d7a !important;
+      background: none !important;
+      text-shadow: 0 0 18px rgba(255, 26, 102, 0.55) !important;
+    }
+    .card h3 { color: #ffffff !important; font-size: 15px !important; }
+    .muted { color: #a8bdd8 !important; font-size: 13px !important; }
+    .tree summary { color: #f0f6ff !important; font-size: 14px !important; }
+    .tree .meta { color: #a8bdd8 !important; font-size: 12.5px !important; }
+  </style>
+</head>
+<body>
+  <div class="quantum-blur" id="quantumBlur"></div>
+
+  <div class="app">
+    <aside class="side">
+      <div class="brand-wrap">
+        <div class="hex-avatar">
+          <svg viewBox="0 0 100 100">
+            <polygon points="50,3 93,28 93,72 50,97 7,72 7,28"
+                     class="hex-inner" />
+            <text x="50" y="50" class="hex-letter">Y</text>
+          </svg>
+        </div>
+        <div class="brand-name">
+          <strong>YAZAN</strong>
+          <span>Elite System</span>
+        </div>
+      </div>
+      <nav class="nav" id="nav">
+        <button data-tab="dashboard" class="active">◉ لوحة التحكم</button>
+        <div class="sep"></div>
+        <div class="section-label">Elite System ⚡</div>
+        <button data-tab="elite">🛡️ المنظومة المتكاملة</button>
+        <button data-tab="elite-panel">📡 لوحة ELITE الحية</button>
+        <div class="sep"></div>
+        <div class="section-label">Core Engines</div>
+        <button data-tab="shell-ripper">🧅 تمزيق الأصداف</button>
+        <button data-tab="memory">🎣 مصيدة المفاتيح العمياء</button>
+        <button data-tab="network">🌐 محلل الشبكة</button>
+        <button data-tab="reverse-timestamp">⏳ البصمة الزمنية المعكوسة</button>
+        <button data-tab="sovereignty">⚔️ محطم السيادة</button>
+        <button data-tab="tetra-cube">🧊 المكعب الرباعي</button>
+        <div class="sep"></div>
+        <div class="section-label">Elite Arsenal</div>
+        <button data-tab="ghost-spectrum">👻 الطيف الخفي</button>
+        <button data-tab="ant-colony">🐜 مستعمرة النمل</button>
+        <button data-tab="brain-link">🧠 الوصلة الدماغية</button>
+        <button data-tab="kamikaze">💀 المحرك الانتحاري</button>
+        <div class="sep"></div>
+        <div class="section-label">Black Protocol</div>
+        <button data-tab="shattered-mind">🧠 العقل المتشظي</button>
+        <button data-tab="blackhole">🕳️ ثقب الهندسة الأسود</button>
+        <button data-tab="speculative">⚡ الحاقن التخميني</button>
+        <button data-tab="compiler-flip">🌀 مقلب المترجم</button>
+        <button data-tab="weighted-future">🔮 المستقبل الموزون</button>
+        <button data-tab="register-puzzle">🧩 أحجية السجل</button>
+        <button data-tab="silent-plague">💀 الطاعون الصامت</button>
+      </nav>
+      <div class="side-foot">
+        <div class="pill" id="healthPill">…</div>
+        <p class="side-stats" id="sideStats" hidden></p>
+        <p>مختبر مصرّح فقط · لا رفع لطرف ثالث</p>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="top">
+        <div>
+          <h1 id="pageTitle">لوحة التحكم</h1>
+          <p id="pageSub">29 محرك — سيطرة كاملة، تشفير، إخفاء، حذف آمن</p>
+        </div>
+        <div class="row">
+          <button class="btn" id="btnFull">تشغيل شامل</button>
+        </div>
+      </header>
+
+            <!-- Dashboard: البطاقة الذهبية -->
+      <section class="tab active" id="tab-dashboard">
+        <div class="profile-stage">
+          <div class="halo"></div>
+          <canvas id="fx"></canvas>
+          <div class="stage-inner">
+            <main class="profile-card" id="profileCard">
+              <div class="spotlight"></div>
+              <span class="shine"></span>
+              <span class="corner corner-tl"></span>
+              <span class="corner corner-tr"></span>
+              <span class="corner corner-bl"></span>
+              <span class="corner corner-br"></span>
+              <div class="online"><span class="dot"></span>متصل</div>
+
+              <div class="profile">
+                <div class="avatar">Y</div>
+                <div class="id">
+                  <div class="name-line">
+                    <h1 class="name">يزن ·</h1>
+                    <span class="verified"><i class="fa-solid fa-check"></i></span>
+                  </div>
+                  <div class="handle"><i class="fa-solid fa-at"></i>5bf7</div>
+                </div>
+              </div>
+
+              <div class="music" id="musicWidget">
+                <div class="disc"><span class="ring"></span></div>
+                <div class="track">
+                  <div class="track-name"><i class="fa-solid fa-music"></i><span class="note">memory_03</span></div>
+                  <div class="byline">Willix &middot; A minor</div>
+                </div>
+                <canvas id="viz" width="116" height="56"></canvas>
+                <button class="play-btn" type="button" title="تشغيل / إيقاف">▶ تشغيل</button>
+              </div>
+
+              <div class="stats">
+                <div class="stat"><span class="stat-num" data-count="50">0</span><span class="stat-label">منشورات</span></div>
+                <div class="stat"><span class="stat-num" data-count="7">0</span><span class="stat-label">متابِعون</span></div>
+                <div class="stat"><span class="stat-num" data-count="7">0</span><span class="stat-label">متابَعون</span></div>
+              </div>
+
+              <div class="grid">
+                <div class="cell"><i class="fa-solid fa-heart"></i><span class="cell-num" data-count="203">0</span><span class="cell-label">إعجابات</span></div>
+                <div class="cell"><i class="fa-solid fa-bookmark"></i><span class="cell-num" data-count="103">0</span><span class="cell-label">محفوظات</span></div>
+                <div class="cell"><i class="fa-solid fa-cloud-arrow-down"></i><span class="cell-num" data-count="356">0</span><span class="cell-label">تحميلات</span></div>
+                <div class="cell"><i class="fa-solid fa-eye"></i><span class="cell-num" data-count="959">0</span><span class="cell-label">مشاهدات</span></div>
+              </div>
+
+              <div class="insights">
+                <div class="insights-head">
+                  <span class="insights-title">هذا الأسبوع</span>
+                  <a class="insights-link" href="#">Insights <i class="fa-solid fa-arrow-left"></i></a>
+                </div>
+                <div class="insights-row">
+                  <span class="insights-icon"><i class="fa-solid fa-eye"></i></span>
+                  <span class="insights-label">المشاهدات</span>
+                  <span class="insights-val"><span class="num" data-count="114">0</span> <span class="delta down"><i class="fa-solid fa-arrow-down"></i>16%</span></span>
+                </div>
+                <div class="insights-row">
+                  <span class="insights-icon"><i class="fa-solid fa-heart"></i></span>
+                  <span class="insights-label">الإعجابات</span>
+                  <span class="insights-val"><span class="num" data-count="19">0</span></span>
+                </div>
+                <div class="insights-row">
+                  <span class="insights-icon"><i class="fa-solid fa-user"></i></span>
+                  <span class="insights-label">متابعون جدد</span>
+                  <span class="insights-val"><span class="num" data-count="1">0</span></span>
+                </div>
+              </div>
+
+              <div class="toolbar">
+                <span class="tool" title="الحماية والأمان"><i class="fa-solid fa-shield-halved"></i>أمان</span>
+                <span class="tool" title="سرعة الأداء"><i class="fa-solid fa-bolt"></i>سرعة</span>
+                <span class="tool" title="تحسين محركات البحث"><i class="fa-solid fa-magnifying-glass-chart"></i>SEO</span>
+                <span class="tool" title="التحليلات"><i class="fa-solid fa-chart-line"></i>تحليلات</span>
+              </div>
+
+              <div class="footer-line"><i class="fa-solid fa-code"></i>Elite System &middot; صُنع بواسطة يزن</div>
+            </main>
+          </div>
+        </div>
+
+        <div class="dash-head">
+          <h2>محركات Elite System</h2>
+          <span class="dash-sub">29 محركاً جاهزاً — اضغط على أي بطاقة لفتحها</span>
+        </div>
+<div class="grid cards">
+          <div class="card feature" data-nav="elite"><h3>🛡️ المنظومة المتكاملة</h3><p>9 وحدات جديدة: مسح كمومي، تشفير متعدد الأبعاد، تنظيف عصبي، خزنة عمياء، إخفاء شبح، رمز انتحاري</p></div>
+          <div class="card feature" data-nav="shell-ripper"><h3>🧅 تمزيق الأصداف</h3><p>فك طبقات + تنبؤ إنتروبيا الطبقة التالية</p></div>
+          <div class="card feature" data-nav="memory"><h3>🎣 مصيدة المفاتيح</h3><p>Dump أو PID — مسح سجلات و Stack frames</p></div>
+          <div class="card feature" data-nav="network"><h3>🌐 محلل الشبكة</h3><p>PCAP → بصمة C2 / DNS / TLS</p></div>
+          <div class="card feature" data-nav="reverse-timestamp"><h3>⏳ البصمة الزمنية</h3><p>Toolchain → CVE + خطة استغلال</p></div>
+          <div class="card feature" data-nav="sovereignty"><h3>⚔️ محطم السيادة</h3><p>سحق Anti-Debug + TimeStamps</p></div>
+          <div class="card feature" data-nav="tetra-cube"><h3>🧊 المكعب الرباعي</h3><p>4D: وقت · ذاكرة · مسجلات · حلقات</p></div>
+          <div class="card feature" data-nav="ghost-spectrum"><h3>👻 الطيف الخفي</h3><p>PEB/ELF من الكاش — invisible</p></div>
+          <div class="card feature" data-nav="kamikaze"><h3>💀 المحرك الانتحاري</h3><p>500 عملية صغرى على نواة أخرى</p></div>
+        </div>
+      </section>
+
+      <!-- ═══════ ELITE SYSTEM TAB ═══════ -->
+      <section class="tab" id="tab-elite">
+        <div class="elite-grid">
+          <!-- 1. Quantum Wiper -->
+          <div class="elite-card" id="elite-wiper">
+            <h3>🗑️ الممحاة الكمومية</h3>
+            <p class="elite-desc">7 تمريرات (Random, Gutmann, Schneier + 3 QRNG) · تصفير MFT · حذف Shadow Copies</p>
+            <div class="elite-actions">
+              <input type="text" class="input" placeholder="مسار الملف" id="wiperPath" style="width:180px; direction:ltr;" />
+              <button class="mini-btn red" id="btnWipe">مسح كمومي</button>
+              <button class="mini-btn red" id="btnWipeDir">مسح مجلد</button>
+            </div>
+            <div class="result-area" id="wiperResult"></div>
+          </div>
+
+          <!-- 2. Multi-Dimensional Shield -->
+          <div class="elite-card" id="elite-shield">
+            <h3>🔐 الدرع المتعدد الأبعاد</h3>
+            <p class="elite-desc">AES-256-GCM + ChaCha20-Poly1305 · طبقة عسل للإنكار المقبول · تشفير مزدوج المفتاح</p>
+            <div class="elite-actions">
+              <input type="password" class="input" placeholder="كلمة المرور" id="shieldPass" style="width:140px;" />
+              <button class="mini-btn" id="btnShieldEnc">تشفير</button>
+              <button class="mini-btn purple" id="btnShieldDec">فك تشفير</button>
+              <button class="mini-btn" id="btnShieldHoney">🍯 فك العسل</button>
+            </div>
+            <div class="result-area" id="shieldResult"></div>
+          </div>
+
+          <!-- 3. Neural Cleaner -->
+          <div class="elite-card" id="elite-cleaner">
+            <h3>📁 المنظف العصبي</h3>
+            <p class="elite-desc">مسح EXIF, PE headers, Office metadata, GPS, ADS · تنظيف في المكان بدون ملفات مؤقتة</p>
+            <div class="elite-actions">
+              <input type="text" class="input" placeholder="مسار الملف" id="cleanerPath" style="width:180px; direction:ltr;" />
+              <button class="mini-btn" id="btnClean">تنظيف</button>
+              <button class="mini-btn purple" id="btnCleanDry">فحص فقط</button>
+            </div>
+            <div class="result-area" id="cleanerResult"></div>
+          </div>
+
+          <!-- 4. Blind Vault -->
+          <div class="elite-card" id="elite-vault">
+            <h3>📦 المستودع الأعمى</h3>
+            <p class="elite-desc">تشفير كتل متفرقة عبر القرص · يبدو تالفًا بدون خريطة البذور · حتى التصوير الجنائي يرى قمامة</p>
+            <div class="elite-actions">
+              <input type="text" class="input" placeholder="مسار الملف" id="vaultPath" style="width:140px; direction:ltr;" />
+              <input type="password" class="input" placeholder="كلمة" id="vaultPass" style="width:100px;" />
+              <button class="mini-btn" id="btnVaultLock">قفل</button>
+              <button class="mini-btn purple" id="btnVaultUnlock">فتح</button>
+            </div>
+            <div class="result-area" id="vaultResult"></div>
+          </div>
+
+          <!-- 5. Ghost Inlayer -->
+          <div class="elite-card" id="elite-stego">
+            <h3>🕵️ المدمج الخفي</h3>
+            <p class="elite-desc">إخفاء داخل JPEG, PNG, WAV · LSB مع خوارزمية تطور تفاضلي · زناد نائم</p>
+            <div class="elite-actions">
+              <input type="password" class="input" placeholder="كلمة السر" id="stegoPass" style="width:120px;" />
+              <button class="mini-btn" id="btnStegoHide">إخفاء</button>
+              <button class="mini-btn purple" id="btnStegoExtract">استخراج</button>
+            </div>
+            <div class="result-area" id="stegoResult"></div>
+          </div>
+
+          <!-- 6. Kamikaze Token -->
+          <div class="elite-card" id="elite-kami">
+            <h3>💣 الرمز الانتحاري</h3>
+            <p class="elite-desc">تشفير زمني (XPB) مع عد تنازلي · إذا لم يُجدد خلال 24 ساعة، المفتاح يُصفّر · للوصية الرقمية</p>
+            <div class="elite-actions">
+              <input type="password" class="input" placeholder="كلمة" id="kamiTokPass" style="width:100px;" />
+              <input type="number" class="input" placeholder="ساعات" id="kamiTokTTL" value="24" style="width:60px;" />
+              <button class="mini-btn red" id="btnKamiSeal">ختم</button>
+              <button class="mini-btn" id="btnKamiUnseal">فتح</button>
+              <button class="mini-btn purple" id="btnKamiRefresh">تجديد</button>
+            </div>
+            <div class="result-area" id="kamiTokResult"></div>
+          </div>
+
+          <!-- 7. Spectral Scanner -->
+          <div class="elite-card" id="elite-spectral">
+            <h3>🔬 الماسح الطيفي</h3>
+            <p class="elite-desc">كشف وحذف ADS + ZAC metadata من الملفات المضغوطة (.zip, .rar, .7z)</p>
+            <div class="elite-actions">
+              <input type="text" class="input" placeholder="مسار الملف" id="spectralPath" style="width:180px; direction:ltr;" />
+              <button class="mini-btn" id="btnSpectral">مسح طيفي</button>
+            </div>
+            <div class="result-area" id="spectralResult"></div>
+          </div>
+
+          <!-- 8. Bio-Entropy Analyzer -->
+          <div class="elite-card" id="elite-entropy">
+            <h3>🧬 محلل الانتروبيا الحيوية</h3>
+            <p class="elite-desc">شبكة عصبية لتحديد البيانات الحساسة مقابل الضوضاء · تشفير تلقائي للمناطق الحساسة فقط</p>
+            <div class="elite-actions">
+              <button class="mini-btn" id="btnEntropy">تحليل ملف</button>
+            </div>
+            <div class="result-area" id="entropyResult"></div>
+          </div>
+
+          <!-- 9. Forking Duplicator -->
+          <div class="elite-card" id="elite-fork">
+            <h3>📋 الناسخ المتشعب</h3>
+            <p class="elite-desc">إنشاء 10 نسخ متطابقة ظاهريًا · واحدة فقط حقيقية · البقية فخاخ</p>
+            <div class="elite-actions">
+              <input type="text" class="input" placeholder="مسار الملف" id="forkPath" style="width:140px; direction:ltr;" />
+              <input type="text" class="input" placeholder="البذرة" id="forkSeed" style="width:80px;" />
+              <button class="mini-btn purple" id="btnFork">تشعيب</button>
+            </div>
+            <div class="result-area" id="forkResult"></div>
+          </div>
+        </div>
+      </section>
+
+<!-- لوحة ELITE الحية -->
+      <section class="tab" id="tab-elite-panel">
+        <div class="toolbar">
+          <button class="btn" id="btnEliteLive">🔴 بث مباشر</button>
+          <span class="muted" id="eliteLivePill">متوقف</span>
+          <span class="muted" id="eliteUptime" style="margin-right:auto"></span>
+        </div>
+
+        <div class="grid two">
+          <div class="card">
+            <h3>🧬 البصمة الرقمية</h3>
+            <pre class="mono" id="eliteFp" style="max-height:220px;overflow:auto">—</pre>
+          </div>
+          <div class="card">
+            <h3>⚙️ مؤشرات النظام</h3>
+            <pre class="mono" id="eliteMetrics" style="max-height:220px;overflow:auto">—</pre>
+          </div>
+          <div class="card wide">
+            <h3>🌐 الشبكة الحية <span class="muted" id="netLiveStamp"></span></h3>
+            <div id="netLiveTable" class="table-wrap">—</div>
+          </div>
+        </div>
+
+        <div class="section-label" style="margin:18px 0 8px">⚡ لوحة ELITE — محركات مباشرة</div>
+        <div class="elite-grid" id="dashGrid">
+          <div class="elite-card">
+            <h3>🧬 البصمة الرقمية</h3>
+            <p class="elite-desc">HWID · MAC · النظام · بصمة SHA-256</p>
+            <div class="elite-actions"><button class="mini-btn" id="btnFp">التقاط البصمة</button></div>
+            <div class="result-area" id="dashFp"></div>
+          </div>
+          <div class="elite-card">
+            <h3>🔌 ماسح المنافذ</h3>
+            <p class="elite-desc">منافذ مخصصة + مهلة — كشف الخدمة</p>
+            <div class="elite-actions">
+              <input type="text" class="input" id="portsFld" placeholder="135,443,445,3389" style="width:150px;direction:ltr" />
+              <button class="mini-btn" id="btnPorts">مسح</button>
+            </div>
+            <div class="result-area" id="dashPorts"></div>
+          </div>
+          <div class="elite-card">
+            <h3>🖥️ مراقب العمليات</h3>
+            <p class="elite-desc">قائمة العمليات + إنهاء PID</p>
+            <div class="elite-actions">
+              <button class="mini-btn" id="btnProcs">قائمة</button>
+              <input type="number" class="input" id="killPid" placeholder="PID" style="width:70px" />
+              <button class="mini-btn red" id="btnKill">إنهاء</button>
+            </div>
+            <div class="result-area" id="dashProcs"></div>
+          </div>
+          <div class="elite-card">
+            <h3>🔐 مشفر الملفات</h3>
+            <p class="elite-desc">AES-256-GCM — تشفير ملف بنقرة</p>
+            <div class="elite-actions">
+              <input type="file" class="input" id="dashEncFile" style="width:170px" />
+              <input type="password" class="input" id="dashEncPass" placeholder="كلمة المرور" style="width:110px" />
+              <button class="mini-btn" id="btnDashEnc">تشفير</button>
+            </div>
+            <div class="result-area" id="dashEncRes"></div>
+          </div>
+          <div class="elite-card">
+            <h3>🔓 مفكك الملفات</h3>
+            <p class="elite-desc">فك تشفير ملفات .rens</p>
+            <div class="elite-actions">
+              <input type="file" class="input" id="dashDecFile" style="width:170px" />
+              <input type="password" class="input" id="dashDecPass" placeholder="كلمة المرور" style="width:110px" />
+              <button class="mini-btn" id="btnDashDec">فك</button>
+            </div>
+            <div class="result-area" id="dashDecRes"></div>
+          </div>
+<div class="elite-card">
+            <h3>🗂️ مدير المهام الخفي</h3>
+            <p class="elite-desc">مهام النظام المخفية عن المراقبة</p>
+            <div class="elite-actions"><button class="mini-btn" id="btnTasks">استعراض</button></div>
+            <div class="result-area" id="dashTasks"></div>
+          </div>
+          <div class="elite-card">
+            <h3>📜 سجل الأحداث</h3>
+            <p class="elite-desc">كل عمليات ELITE المسجلة</p>
+            <div class="elite-actions"><button class="mini-btn" id="btnEvents">السجل</button></div>
+            <div class="result-area" id="dashEvents"></div>
+          </div>
+          <div class="elite-card">
+            <h3>⚡ الاختراق التخميني</h3>
+            <p class="elite-desc">تدقيق كلمات ضعيفة لملف مشفر</p>
+            <div class="elite-actions">
+              <input type="file" class="input" id="dashBruteFile" style="width:170px" />
+              <input type="text" class="input" id="dashBruteCand" placeholder="123456,password,admin" style="width:150px;direction:ltr" />
+              <button class="mini-btn purple" id="btnBrute">هجوم</button>
+            </div>
+            <div class="result-area" id="dashBruteRes"></div>
+          </div>
+          <div class="elite-card">
+            <h3>🚀 مسرع الأداء</h3>
+            <p class="elite-desc">فحص وتفعيل تحسينات النظام</p>
+            <div class="elite-actions">
+              <label style="font-size:11px;color:var(--muted)"><input type="checkbox" id="accelDry" checked /> تجربة فقط</label>
+              <button class="mini-btn" id="btnAccel">تشغيل</button>
+            </div>
+            <div class="result-area" id="dashAccelRes"></div>
+          </div>
+          <div class="elite-card">
+            <h3>📂 المستعرض السري</h3>
+            <p class="elite-desc">تصفح آمن للملفات والمجلدات</p>
+            <div class="elite-actions">
+              <input type="text" class="input" id="dashBrowsePath" placeholder="C:\\" style="width:150px;direction:ltr" />
+              <button class="mini-btn" id="btnBrowse">تصفح</button>
+            </div>
+            <div class="result-area" id="dashBrowseRes"></div>
+          </div>
+          <div class="elite-card">
+            <h3>🧪 مسح كومبي</h3>
+            <p class="elite-desc">6 مراحل في طلب واحد: عمليات + منافذ + أحداث + مهام + متصفح + بصمة</p>
+            <div class="elite-actions"><button class="mini-btn" id="btnCombi">مسح شامل</button></div>
+            <div class="result-area" id="dashCombi"></div>
+          </div>
+          <div class="elite-card">
+            <h3>🎫 الرمز الانتاجي</h3>
+            <p class="elite-desc">رمز لمرة واحدة بتوقيع زمني</p>
+            <div class="elite-actions">
+              <button class="mini-btn" id="btnForge">تزوير رمز</button>
+              <input type="text" class="input" id="codeFld" placeholder="الرمز" style="width:120px;direction:ltr" />
+              <button class="mini-btn" id="btnVerify">تحقق</button>
+            </div>
+            <div class="result-area" id="dashCode"></div>
+          </div>
+          <div class="elite-card">
+            <h3>🗳️ المحرك الانتخاري</h3>
+            <p class="elite-desc">التوجيه الانتقائي — الرمز يختار مصيره</p>
+            <div class="elite-actions">
+              <input type="file" class="input" id="electFile" style="width:170px" />
+              <button class="mini-btn" id="btnElect">توجيه</button>
+            </div>
+            <div class="result-area" id="dashElect"></div>
+          </div>
+        </div>
+
+        <div class="section-label" style="margin:18px 0 8px">🧩 المحركات الـ29 — نظرة شاملة</div>
+        <div class="elite-grid" id="enginesGrid"></div>
+      </section>
+      <!-- Existing engine tabs (preserved) -->
+      <section class="tab" id="tab-shell-ripper">
+        <div class="toolbar"><button class="btn" id="btnShell">فك + تنبؤ</button><span class="muted" id="shellStats"></span></div>
+        <div class="split">
+          <div class="card"><h3>شجرة الطبقات</h3><div id="shellTree" class="tree">—</div></div>
+          <div class="card"><h3>النوى + السلاسل</h3><pre id="shellCores" class="mono">—</pre><pre id="shellChains" class="mono" style="margin-top:8px">—</pre></div>
+        </div>
+      </section>
+
+      <section class="tab" id="tab-memory">
+        <div class="toolbar"><input type="number" id="memPid" class="input" placeholder="PID" /><button class="btn" id="btnMem">استخراج المفاتيح</button></div>
+        <div class="card"><h3>المفاتيح المكتشفة</h3><div id="memHits" class="table-wrap">—</div></div>
+      </section>
+
+      <section class="tab" id="tab-network">
+        <div class="toolbar"><button class="btn" id="btnNet">تحليل PCAP</button></div>
+        <div class="grid two">
+          <div class="card"><h3>بروتوكولات</h3><pre id="netProto" class="mono">—</pre></div>
+          <div class="card"><h3>بصمة الشبكة</h3><pre id="netFp" class="mono">—</pre></div>
+          <div class="card"><h3>Endpoints</h3><div id="netEnds" class="table-wrap">—</div></div>
+          <div class="card"><h3>DNS / Hosts</h3><pre id="netDns" class="mono">—</pre></div>
+          <div class="card wide"><h3>Top Flows</h3><pre id="netFlows" class="mono">—</pre></div>
+        </div>
+      </section>
+
+      <section class="tab" id="tab-reverse-timestamp">
+        <div class="toolbar"><button class="btn" id="btnRevTs">استخراج البصمة الزمنية</button></div>
+        <div class="split">
+          <div class="card"><h3>أفضل تطابق Toolchain</h3><div id="revBest" class="hero-match">—</div><pre id="revPlan" class="mono" style="margin-top:10px">—</pre></div>
+          <div class="card"><h3>الترتيب + CVEs</h3><div id="revRank" class="table-wrap">—</div><p class="muted" id="revDisc"></p></div>
+        </div>
+      </section>
+
+      <section class="tab" id="tab-sovereignty">
+        <div class="toolbar"><button class="btn crusher" id="btnSov">⚔️ سحق الحمايات</button><button class="btn danger" id="btnPatch">ترقيع + تنزيل</button></div>
+        <div class="split">
+          <div class="card"><h3>المؤشرات</h3><div id="sovScore" class="score">—</div><div id="sovFindings" class="table-wrap">—</div></div>
+          <div class="card"><h3>خطة التجاوز</h3><pre id="sovPlan" class="mono">—</pre><pre id="sovPatch" class="mono" style="margin-top:10px">—</pre></div>
+        </div>
+      </section>
+
+      <section class="tab" id="tab-tetra-cube">
+        <div class="toolbar"><button class="btn psychic" id="btnTetra">بناء المكعب الرباعي</button><span class="muted" id="tetraStats"></span></div>
+        <div class="card stage-wrap"><canvas id="c3d"></canvas><div id="nodeTip" class="tip hidden"></div></div>
+        <div class="card" style="margin-top:10px"><h3>أخطر العقد</h3><div id="tetraHot" class="table-wrap">—</div></div>
+      </section>
+
+      <section class="tab" id="tab-ghost-spectrum">
+        <div class="toolbar"><button class="btn" id="btnGhost">مسح PEB/ELF</button></div>
+        <div class="split">
+          <div class="card"><h3>علامات PEB</h3><div id="ghostMarkers" class="table-wrap">—</div></div>
+          <div class="card"><h3>خطة التخفي</h3><pre id="ghostPlan" class="mono">—</pre><div id="ghostScore" class="score" style="margin-top:8px">—</div></div>
+        </div>
+      </section>
+
+      <section class="tab" id="tab-ant-colony">
+        <div class="toolbar"><button class="btn" id="btnAnts">إطلاق المستعمرة</button><span class="muted" id="antStats"></span></div>
+        <div class="split">
+          <div class="card"><h3>أضعف 15 قفزة</h3><div id="antWeak" class="table-wrap">—</div></div>
+          <div class="card"><h3>تغطية المستعمرة</h3><pre id="antCover" class="mono">—</pre></div>
+        </div>
+      </section>
+
+      <section class="tab" id="tab-brain-link">
+        <div class="toolbar"><button class="btn" id="btnBrain">ترجمة إلى C</button><span class="muted" id="brainConf"></span></div>
+        <pre id="brainCode" class="mono" style="max-height:60vh;background:rgba(0,240,255,.03);padding:12px;border-radius:10px">—</pre>
+      </section>
+
+      <section class="tab" id="tab-kamikaze">
+        <div class="toolbar"><button class="btn danger" id="btnKami">💀 تسليح كاميكازي</button></div>
+        <div class="split">
+          <div class="card"><h3>حالة السلاح</h3><div id="kamiStatus" class="hero-match">—</div><pre id="kamiPlaybook" class="mono" style="margin-top:10px">—</pre></div>
+          <div class="card"><h3>الشظايا</h3><div id="kamiShards" class="table-wrap">—</div></div>
+        </div>
+      </section>
+
+      <section class="tab" id="tab-shattered-mind">
+        <div class="toolbar"><button class="btn" id="btnShatter">تشتيت العقل</button><span class="muted" id="shatterStats"></span></div>
+        <div class="split">
+          <div class="card"><h3>CFG المعاد بناؤه</h3><pre id="shatterCFG" class="mono">—</pre></div>
+          <div class="card"><h3>الشظايا</h3><div id="shatterFrags" class="table-wrap">—</div></div>
+        </div>
+      </section>
+
+      <section class="tab" id="tab-blackhole">
+        <div class="toolbar"><button class="btn" id="btnBH">تحليل ETW</button></div>
+        <div class="split">
+          <div class="card"><h3>جلسات ETW</h3><div id="bhSessions" class="table-wrap">—</div></div>
+          <div class="card"><h3>خطة التعمية</h3><pre id="bhPlaybook" class="mono">—</pre></div>
+        </div>
+      </section>
+
+      <section class="tab" id="tab-speculative">
+        <div class="toolbar"><button class="btn" id="btnSpec">تحليل الفروع التخمينية</button></div>
+        <div class="split">
+          <div class="card"><h3>Gadgets</h3><div id="specGadgets" class="table-wrap">—</div></div>
+          <div class="card"><h3>خطة التدريب</h3><pre id="specPlan" class="mono">—</pre></div>
+        </div>
+      </section>
+
+      <section class="tab" id="tab-compiler-flip">
+        <div class="toolbar"><button class="btn" id="btnFlip">تحليل JIT</button></div>
+        <div class="split">
+          <div class="card"><h3>Sinks</h3><div id="flipSinks" class="table-wrap">—</div></div>
+          <div class="card"><h3>استراتيجية الاختطاف</h3><pre id="flipStrat" class="mono">—</pre></div>
+        </div>
+      </section>
+
+      <section class="tab" id="tab-weighted-future">
+        <div class="toolbar"><button class="btn psychic" id="btnFuture">توقع المستقبل</button></div>
+        <div class="split">
+          <div class="card"><h3>المسجلات المتوقعة</h3><div id="futRegs" class="table-wrap">—</div></div>
+          <div class="card"><h3>دقة النموذج</h3><div id="futScore" class="score">—</div><pre id="futPreds" class="mono">—</pre></div>
+        </div>
+      </section>
+
+      <section class="tab" id="tab-register-puzzle">
+        <div class="toolbar"><button class="btn" id="btnRegPuz">حل الأحجية</button></div>
+        <div class="split">
+          <div class="card"><h3>مناطق SIMD</h3><div id="regSimd" class="table-wrap">—</div></div>
+          <div class="card"><h3>إعادة بناء المفتاح</h3><pre id="regKey" class="mono" style="color:var(--blood)">—</pre><div id="regAcc" class="score" style="margin-top:6px">—</div></div>
+        </div>
+      </section>
+
+      <section class="tab" id="tab-silent-plague">
+        <div class="toolbar"><button class="btn danger" id="btnPlague">💀 تحليل الثبات</button></div>
+        <div class="split">
+          <div class="card"><h3>مؤشرات UEFI/SMRAM</h3><div id="plagueArtifacts" class="table-wrap">—</div></div>
+          <div class="card"><h3>خطة الثبات</h3><pre id="plaguePlan" class="mono">—</pre></div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Quick Action Ribbon -->
+  <div class="quick-ribbon" id="quickRibbon">
+    <div class="drop-zone" id="dropZone">🖱️ اسحب وأفلت ملف هنا</div>
+    <button class="rib-btn wipe" id="ribWipe">🗑️ مسح</button>
+    <button class="rib-btn" id="ribEncrypt">🔐 تشفير</button>
+    <button class="rib-btn" id="ribDecrypt">🔓 فك</button>
+    <button class="rib-btn" id="ribStegoHide">🕵️ إخفاء</button>
+    <button class="rib-btn" id="ribStegoExtract">📤 استخراج</button>
+    <button class="rib-btn psychic-btn" id="ribClean">📁 قتل البيانات الوصفية</button>
+    <div class="progress-wrap">
+      <div class="progress-bar"><div class="progress-fill" id="ribProgressFill"></div></div>
+      <div class="progress-label" id="ribProgressLabel">جاهز</div>
+    </div>
+    <div class="entropy-gauge" id="ribEntropy">H=—</div>
+  </div>
+
+  <div id="toast" class="toast hidden"></div>
+
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+      "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+    }
+  }
+  </script>
+  <script type="module" src="js/scene3d.js"></script>
+  <script type="module" src="js/app.js"></script>
+  <script type="module" src="js/profile.js"></script>
+</body>
+</html>
